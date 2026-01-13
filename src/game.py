@@ -1,4 +1,5 @@
 import random
+import time
 
 from bird import Bird
 from pipe import Pipe
@@ -8,12 +9,15 @@ class Game:
     pipes: list[Pipe]
     screen_width: int
     screen_height: int
+    frame_time: float
+    last_frame: float = 0.0
     
-    def __init__(self, screen_width: int, screen_height: int):
+    def __init__(self, screen_width: int, screen_height: int, frame_time: float):
         self.bird = Bird()
         self.pipes = []
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.frame_time = frame_time
         
     def update(self):
         self.bird.update()
@@ -39,3 +43,14 @@ class Game:
                 gap_height = 100
                 new_pipe = Pipe(gap_y, gap_height, self.screen_width)
                 self.pipes.append(new_pipe)
+                
+    def loop(self):
+        elapsed = time.time() - self.last_frame
+        if elapsed < self.frame_time:
+            return True
+        self.last_frame = time.time()
+
+        self.update()
+        self.render()
+        
+        return True

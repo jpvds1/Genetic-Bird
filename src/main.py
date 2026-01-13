@@ -11,16 +11,10 @@ SCREEN_HEIGHT = int(os.getenv("SCREEN_HEIGHT", 600))
 FRAME_TIME = 1.0 / FRAME_RATE
 
 def main():
-    game = Game(SCREEN_WIDTH, SCREEN_HEIGHT)
-    last_frame = 0.0
+    game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, FRAME_TIME)
     while True:
-        elapsed = time.time() - last_frame
-        if elapsed < FRAME_TIME:
-            continue
-        last_frame = time.time()
-        
-        game.update()
-        game.render()
+        if not game.loop(): 
+            break
     
 if __name__ == "__main__":
     main()
