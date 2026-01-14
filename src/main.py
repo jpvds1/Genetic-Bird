@@ -10,16 +10,7 @@ FRAME_RATE = int(os.getenv("FRAME_RATE", 60))
 SCALE_RATIO = int(os.getenv("SCALE_RATIO", 3))
 FRAME_TIME = 1.0 / FRAME_RATE
 SCREEN_WIDTH = 143
-SCREEN_HEIGHT = 155
-
-def handle_events(running):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_ESCAPE]:
-        running = False
+SCREEN_HEIGHT = 195
 
 def main():
     pygame.init()
