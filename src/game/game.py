@@ -19,11 +19,14 @@ class Game:
         self.frame_time = frame_time
         self.bird = Bird(scale_ratio)
         self.pipes = []
-        self.pipes.append(Pipe(random.randint(self.screen_height*0.1, self.screen_height*0.4), self.screen_width, scale_ratio))
+        self.pipes.append(Pipe(random.randint(self.screen_height*0.1, self.screen_height*0.4), self.screen_width, self.screen_height, scale_ratio))
         self.score = 0
 
     def update(self, dt: float) -> bool:
         self.bird.update(dt)
+        if self.bird.check_collision(self.screen_height):
+            return False
+        
         for pipe in self.pipes:
             pipe.update(dt)
             if pipe.offscreen:
@@ -31,6 +34,8 @@ class Game:
             if pipe.state == RewardState.AVAILABLE:
                 self.score += 1
                 pipe.state = RewardState.COLLECTED
+            if pipe.check_collision(self.bird.hitbox()):
+                return False
             
         self.generate_pipe()
 
@@ -41,5 +46,5 @@ class Game:
         last_position = self.pipes[-1].position_x
         if last_position < self.screen_width * 0.5:
             gap_y = random.randint(self.screen_height*0.1, self.screen_height*0.4)
-            new_pipe = Pipe(gap_y, self.screen_width, self.scale_ratio)
+            new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio)
             self.pipes.append(new_pipe)
