@@ -2,15 +2,14 @@ from game.game import Game
 from render.renderer import Renderer
 import pygame
 
-
 class App:
-    def __init__(self, screen, clock, screen_width: int, screen_height: int, frame_time: float):
+    def __init__(self, screen, clock, unscaled_height, unscaled_width, scale_ratio: int, frame_time: float):
         self.screen = screen
         self.clock = clock
         self.running = True
 
-        self.game = Game(screen_width, screen_height, frame_time)
-        self.renderer = Renderer(screen_width, screen_height, screen, clock)
+        self.game = Game(unscaled_height, unscaled_width, scale_ratio, frame_time)
+        self.renderer = Renderer(unscaled_height, unscaled_width, scale_ratio, screen, clock)
         self.renderer.set_vars(self.game.bird, self.game.pipes)
 
     def handle_events(self):

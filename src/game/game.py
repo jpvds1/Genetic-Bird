@@ -11,12 +11,12 @@ class Game:
     screen_height: int
     frame_time: float
     last_frame: float = 0.0
-    
-    def __init__(self, screen_width: int, screen_height: int, frame_time: float):
+
+    def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float):
         self.bird = Bird()
         self.pipes = []
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        self.screen_width = unscaled_width * scale_ratio
+        self.screen_height = unscaled_height * scale_ratio
         self.frame_time = frame_time
         
     def update(self, dt: float) -> bool:

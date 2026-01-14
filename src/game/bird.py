@@ -19,6 +19,8 @@ class Bird:
             self.position_y = 0
             self.acceleration = 0.0
         self.acceleration += 0.3 * dt * 60
+        if self.acceleration > 15.0:
+            self.acceleration = 15.0
         
     def render(self, screen):
         pygame.draw.circle(screen, (255, 255, 0), (self.position_x, self.position_y), 10)

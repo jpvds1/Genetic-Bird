@@ -7,9 +7,10 @@ import pygame
 load_dotenv()
 
 FRAME_RATE = int(os.getenv("FRAME_RATE", 60))
-SCREEN_WIDTH = int(os.getenv("SCREEN_WIDTH", 800))
-SCREEN_HEIGHT = int(os.getenv("SCREEN_HEIGHT", 600))
+SCALE_RATIO = int(os.getenv("SCALE_RATIO", 3))
 FRAME_TIME = 1.0 / FRAME_RATE
+SCREEN_WIDTH = 143
+SCREEN_HEIGHT = 155
 
 def handle_events(running):
     for event in pygame.event.get():
@@ -22,12 +23,12 @@ def handle_events(running):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH * SCALE_RATIO, SCREEN_HEIGHT * SCALE_RATIO))
     pygame.display.set_caption("Genetic Bird")
     clock = pygame.time.Clock()
     running = True
 
-    app = App(screen, clock, SCREEN_WIDTH, SCREEN_HEIGHT, FRAME_TIME)
+    app = App(screen, clock, SCREEN_HEIGHT, SCREEN_WIDTH, SCALE_RATIO, FRAME_TIME)
 
     while running:
         app.update()
