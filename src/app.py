@@ -21,12 +21,16 @@ class App:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
             self.running = False
+        if keys[pygame.K_SPACE]:
+            self.game.bird.flap()
 
     def is_running(self) -> bool:
         return self.running
     
     def update(self):
-        if not self.game.loop(): 
+        dt = self.clock.tick() / 1000.0
+
+        if not self.game.update(dt): 
             self.running = False
         
         self.handle_events()

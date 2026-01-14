@@ -15,8 +15,9 @@ class Renderer:
 
     def render(self):
         self.screen.fill("black")
-        pygame.draw.rect(self.screen, "blue", pygame.Rect(self.bird.position_x, self.bird.position_y, 30, 30))
-        self.bird.render()
+
+        self.bird.render(self.screen)
         for pipe in self.pipes:
-            pipe.render()
+            pipe.render(self.screen)
+
         pygame.display.flip()

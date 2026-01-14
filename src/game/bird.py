@@ -1,4 +1,4 @@
-
+import pygame
 
 class Bird:
     position_x: int
@@ -6,16 +6,19 @@ class Bird:
     acceleration: float
     
     def __init__(self):
-        self.position_x = 0
-        self.position_y = 0
+        self.position_x = 50
+        self.position_y = 100
         self.acceleration = 0.0
         
     def flap(self):
-        self.acceleration = -5.0
+        self.acceleration = -6.0
         
-    def update(self):
-        self.position_y += self.acceleration
-        self.acceleration += 0.5
+    def update(self, dt):
+        self.position_y += self.acceleration * dt * 60
+        if self.position_y <= 0:
+            self.position_y = 0
+            self.acceleration = 0.0
+        self.acceleration += 0.3 * dt * 60
         
-    def render(self):
-        print(f"Bird at ({self.position_x}, {self.position_y}) with acceleration {self.acceleration}")
+    def render(self, screen):
+        pygame.draw.circle(screen, (255, 255, 0), (self.position_x, self.position_y), 10)

@@ -1,4 +1,4 @@
-
+import pygame
 
 class Pipe:
     position_x: int
@@ -11,10 +11,11 @@ class Pipe:
         self.gap_y = gap_y
         self.gap_height = gap_height
         
-    def update(self):
-        self.position_x -= 2
+    def update(self, dt):
+        self.position_x -= 2 * dt * 60
         if self.position_x < -50:
             self.offscreen = True
         
-    def render(self):
-        print(f"Pipe at x={self.position_x} with gap from y={self.gap_y} to y={self.gap_y + self.gap_height}")
+    def render(self, screen):
+        pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(self.position_x, 0, 50, self.gap_y))
+        pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(self.position_x, self.gap_y + self.gap_height, 50, screen.get_height() - (self.gap_y + self.gap_height)))
