@@ -32,3 +32,8 @@ def get_background_sprite(scale_ratio):
     background_sprite = cut_sprite(sheet, pygame.Rect(0, 40, 143, 195))
     background_sprite = pygame.transform.scale_by(background_sprite, scale_ratio)
     return background_sprite
+
+def rotate_sprite(sprite, angle, center):
+    rotated_sprite = pygame.transform.rotate(sprite, angle)
+    rect = rotated_sprite.get_rect(center=center)
+    return rotated_sprite, rect

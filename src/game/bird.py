@@ -1,4 +1,4 @@
-from render.sprite_helper import get_bird_sprite
+from render.sprite_helper import get_bird_sprite, rotate_sprite
 import pygame
 
 class Bird:
@@ -7,13 +7,15 @@ class Bird:
     acceleration: float
     
     def __init__(self, scale_ratio: int):
-        self.position_x = 50
-        self.position_y = 100
+        self.position_x = 8 * scale_ratio
+        self.position_y = 50 * scale_ratio
         self.acceleration = 0.0
         self.sprite = get_bird_sprite(scale_ratio)
 
     def flap(self):
         self.acceleration = -10.0
+        if self.acceleration < -15.0:
+            self.acceleration = -15.0
         
     def update(self, dt):
         self.position_y += self.acceleration * dt * 60
@@ -25,4 +27,5 @@ class Bird:
             self.acceleration = 15.0
         
     def render(self, screen):
-        screen.blit(self.sprite, (self.position_x, self.position_y))
+        rotated_sprite, rect = rotate_sprite(self.sprite, -self.acceleration * 2, (self.position_x + self.sprite.get_width() // 2, self.position_y + self.sprite.get_height() // 2))
+        screen.blit(rotated_sprite, rect.topleft)
