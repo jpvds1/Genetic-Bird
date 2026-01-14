@@ -1,8 +1,8 @@
 import random
 import time
 
-from bird import Bird
-from pipe import Pipe
+from game.bird import Bird
+from game.pipe import Pipe
 
 class Game:
     bird: Bird
@@ -27,12 +27,7 @@ class Game:
                 self.pipes.remove(pipe)
             
         self.generate_pipe()
-            
-    def render(self):
-        self.bird.render()
-        for pipe in self.pipes:
-            pipe.render()
-            
+    
     # check the position of the last pipe and generate a new one if needed
     def generate_pipe(self):
         last_position = self.pipes[-1].position_x if self.pipes else self.screen_width - 300
@@ -43,6 +38,12 @@ class Game:
                 gap_height = 100
                 new_pipe = Pipe(gap_y, gap_height, self.screen_width)
                 self.pipes.append(new_pipe)
+
+    def get_state(self) -> dict:
+        return {
+            "bird": self.bird,
+            "pipes": self.pipes
+        }
                 
     def loop(self):
         elapsed = time.time() - self.last_frame
@@ -51,6 +52,5 @@ class Game:
         self.last_frame = time.time()
 
         self.update()
-        self.render()
         
         return True
