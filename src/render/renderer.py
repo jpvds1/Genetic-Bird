@@ -17,7 +17,7 @@ class Renderer:
         self.bird = bird
         self.pipes = pipes
 
-    def render(self):
+    def render(self, score):
         self.screen.fill("black")
 
         self.screen.blit(self.background_sprite, (0, 0))
@@ -28,4 +28,11 @@ class Renderer:
 
         self.screen.blit(self.grass_sprite, (0, self.height - self.grass_sprite.get_height()))
 
+        self.draw_score(score)
+
         pygame.display.flip()
+
+    def draw_score(self, score):
+        font = pygame.font.Font(None, 10 * self.scale_ratio)
+        text = font.render(str(score), True, (255, 255, 255))
+        self.screen.blit(text, (self.width // 2 - text.get_width() // 2, 3 * self.scale_ratio))

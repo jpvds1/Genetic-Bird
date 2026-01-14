@@ -2,7 +2,7 @@ import random
 import time
 
 from game.bird import Bird
-from game.pipe import Pipe
+from game.pipe import Pipe, RewardState
 
 class Game:
     bird: Bird
@@ -20,6 +20,7 @@ class Game:
         self.bird = Bird(scale_ratio)
         self.pipes = []
         self.pipes.append(Pipe(random.randint(self.screen_height*0.1, self.screen_height*0.4), self.screen_width, scale_ratio))
+        self.score = 0
 
     def update(self, dt: float) -> bool:
         self.bird.update(dt)
@@ -27,6 +28,9 @@ class Game:
             pipe.update(dt)
             if pipe.offscreen:
                 self.pipes.remove(pipe)
+            if pipe.state == RewardState.AVAILABLE:
+                self.score += 1
+                pipe.state = RewardState.COLLECTED
             
         self.generate_pipe()
 
@@ -39,9 +43,3 @@ class Game:
             gap_y = random.randint(self.screen_height*0.1, self.screen_height*0.4)
             new_pipe = Pipe(gap_y, self.screen_width, self.scale_ratio)
             self.pipes.append(new_pipe)
-
-    def get_state(self) -> dict:
-        return {
-            "bird": self.bird,
-            "pipes": self.pipes
-        }

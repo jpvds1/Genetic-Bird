@@ -33,4 +33,4 @@ class App:
             self.running = False
         
         self.handle_events()
-        self.renderer.render()
+        self.renderer.render(self.game.score)
