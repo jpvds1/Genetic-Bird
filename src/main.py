@@ -20,10 +20,7 @@ def main():
     running = True
 
     app = App(screen, clock, SCREEN_HEIGHT, SCREEN_WIDTH, SCALE_RATIO, FRAME_TIME)
-
-    while running:
-        app.update()
-        running = app.is_running()
+    app.run()
 
     pygame.quit()
     
