@@ -2,6 +2,8 @@ from render.sprite_helper import get_pipe_sprites
 from enum import Enum
 import pygame
 
+BASE_SPEED = 10.0 / 6.0
+
 class RewardState(Enum):
     NONE = 0
     AVAILABLE = 1
@@ -20,10 +22,11 @@ class Pipe:
         self.gap_y = gap_y
         self.gap_height = 50 * scale_ratio
         self.top_sprite, self.bottom_sprite = get_pipe_sprites(scale_ratio)
+        self.speed = BASE_SPEED * scale_ratio
         self.state = RewardState.NONE
 
     def update(self, dt):
-        self.position_x -= 10 * dt * 60
+        self.position_x -= self.speed * dt * 60
         if self.position_x < 8 * self.scale_ratio and self.state == RewardState.NONE:
             self.state = RewardState.AVAILABLE
         if self.position_x < -self.top_sprite.get_width():
