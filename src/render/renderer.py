@@ -42,15 +42,48 @@ class Renderer:
 
         pygame.display.flip()
 
+    def render_game_over(self, score):
+        self.screen.fill("black")
+
+        self.screen.blit(self.background_sprite, (0, 0))
+
+        self.bird.render(self.screen)
+        for pipe in self.pipes:
+            pipe.render(self.screen)
+
+        self.screen.blit(self.grass_sprite, (0, self.height - self.grass_sprite.get_height()))
+
+        self.draw_final_score(score)
+        if self.draw_button("Menu", self.width // 2 - 40 * self.scale_ratio, self.height // 2 + 20 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio):
+            return MenuSelection.MENU
+
+        pygame.display.flip()
+
     def draw_score(self, score):
         font = pygame.font.Font(None, 10 * self.scale_ratio)
         text = font.render(str(score), True, (255, 255, 255))
         self.screen.blit(text, (self.width // 2 - text.get_width() // 2, 3 * self.scale_ratio))
 
-    def draw_button(self, text, x, y, width, height, mouse_pos, click):
+    def draw_final_score(self, score):
+        font = pygame.font.Font(None, 10 * self.scale_ratio)
+        text = font.render(f"Final Score: {score}", True, (255, 255, 255))
+        self.screen.blit(text, (self.width // 2 - text.get_width() // 2, self.height // 2 - text.get_height() // 2))
+
+    def wait_for_mouse_release(self):
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONUP:
+                    waiting = False
+
+    def draw_button(self, text, x, y, width, height):
+        mouse_pos = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
         if x < mouse_pos[0] < x + width and y < mouse_pos[1] < y + height:
             pygame.draw.rect(self.screen, BUTTON_HOVER_COLOR, (x, y, width, height))
             if click[0] == 1:
+                self.wait_for_mouse_release()
                 return True
         else:
             pygame.draw.rect(self.screen, BUTTON_COLOR, (x, y, width, height))
@@ -67,10 +100,10 @@ class Renderer:
         self.screen.blit(self.background_sprite, (0, 0))
         self.screen.blit(self.grass_sprite, (0, self.height - self.grass_sprite.get_height()))
 
-        if self.draw_button("Start Game", self.width // 2 - 40 * self.scale_ratio, self.height // 2 - 10 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio, pygame.mouse.get_pos(), pygame.mouse.get_pressed()):
+        if self.draw_button("Start Game", self.width // 2 - 40 * self.scale_ratio, self.height // 2 - 10 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio):
             return MenuSelection.PLAY
 
-        if self.draw_button("Quit", self.width // 2 - 40 * self.scale_ratio, self.height // 2 + 20 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio, pygame.mouse.get_pos(), pygame.mouse.get_pressed()):
+        if self.draw_button("Quit", self.width // 2 - 40 * self.scale_ratio, self.height // 2 + 20 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio):
             return MenuSelection.QUIT
 
         pygame.display.flip()

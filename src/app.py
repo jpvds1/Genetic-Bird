@@ -18,7 +18,6 @@ class App:
 
         self.game = Game(unscaled_height, unscaled_width, scale_ratio, frame_time)
         self.renderer = Renderer(unscaled_height, unscaled_width, scale_ratio, screen, clock)
-        self.renderer.set_vars(self.game.bird, self.game.pipes)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -42,6 +41,8 @@ class App:
             selection = self.renderer.menu()
 
             if selection == MenuSelection.PLAY:
+                self.game = Game(self.game.screen_height // self.game.scale_ratio, self.game.screen_width // self.game.scale_ratio, self.game.scale_ratio, self.game.frame_time)
+                self.renderer.set_vars(self.game.bird, self.game.pipes)
                 self.state = AppState.PLAYING
             elif selection == MenuSelection.QUIT:
                 self.state = AppState.OFF
@@ -50,7 +51,9 @@ class App:
         elif self.state == AppState.PLAYING:
             self.renderer.render(self.game.score)
         elif self.state == AppState.GAME_OVER:
-            self.renderer.render(self.game.score)
+            selection = self.renderer.render_game_over(self.game.score)
+            if selection == MenuSelection.MENU:
+                self.state = AppState.MENU
     
     def run(self):
         while self.state != AppState.OFF:
