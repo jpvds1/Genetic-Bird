@@ -2,16 +2,12 @@ from game.bird import Bird
 from game.pipe import Pipe
 from render.sprite_helper import get_grass_sprite, get_background_sprite
 from enum import Enum
+from render.menu import MenuSelection, Menu
 import pygame
 
 BUTTON_COLOR = (209, 0, 0)
 BUTTON_HOVER_COLOR = (255, 0, 0)
 
-class MenuSelection(Enum):
-    MENU = 0
-    PLAY = 1
-    GA = 2
-    QUIT = 4
 
 class Renderer:
     def __init__(self, unscaled_height, unscaled_width, scale_ratio, screen, clock):
@@ -22,6 +18,7 @@ class Renderer:
         self.clock = clock
         self.background_sprite = get_background_sprite(scale_ratio)
         self.grass_sprite = get_grass_sprite(scale_ratio)
+        self.menu = Menu(unscaled_height, unscaled_width, scale_ratio, screen, clock)
 
     def set_vars(self, bird, pipes):
         self.bird = bird
@@ -93,19 +90,5 @@ class Renderer:
         text_rect = text_surface.get_rect(center=(x + width // 2, y + height // 2))
         self.screen.blit(text_surface, text_rect)
 
-
-    def menu(self):
-        self.screen.fill("black")
-
-        self.screen.blit(self.background_sprite, (0, 0))
-        self.screen.blit(self.grass_sprite, (0, self.height - self.grass_sprite.get_height()))
-
-        if self.draw_button("Start Game", self.width // 2 - 40 * self.scale_ratio, self.height // 2 - 10 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio):
-            return MenuSelection.PLAY
-
-        if self.draw_button("Quit", self.width // 2 - 40 * self.scale_ratio, self.height // 2 + 20 * self.scale_ratio, 80 * self.scale_ratio, 20 * self.scale_ratio):
-            return MenuSelection.QUIT
-
-        pygame.display.flip()
-
-        return MenuSelection.MENU
+    def render_menu(self):
+        return self.menu.render()

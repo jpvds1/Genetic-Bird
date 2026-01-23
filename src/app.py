@@ -9,6 +9,7 @@ class AppState(Enum):
     TRAINING = 2
     GAME_OVER = 3
     OFF = 4
+    AI_MENU = 5
 
 class App:
     def __init__(self, screen, clock, unscaled_height, unscaled_width, scale_ratio: int, frame_time: float):
@@ -38,7 +39,7 @@ class App:
 
     def render(self):
         if self.state == AppState.MENU:
-            selection = self.renderer.menu()
+            selection = self.renderer.render_menu()
 
             if selection == MenuSelection.PLAY:
                 self.game = Game(self.game.screen_height // self.game.scale_ratio, self.game.screen_width // self.game.scale_ratio, self.game.scale_ratio, self.game.frame_time)
@@ -46,6 +47,8 @@ class App:
                 self.state = AppState.PLAYING
             elif selection == MenuSelection.QUIT:
                 self.state = AppState.OFF
+            elif selection == MenuSelection.AI:
+                self.state = AppState.TRAINING
             else:
                 self.state = AppState.MENU
         elif self.state == AppState.PLAYING:
