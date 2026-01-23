@@ -28,7 +28,7 @@ class App:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
             self.state = AppState.OFF
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and self.state == AppState.PLAYING:
             self.game.bird.flap()
     
     def update(self):
@@ -47,6 +47,16 @@ class App:
                 self.state = AppState.PLAYING
             elif selection == MenuSelection.QUIT:
                 self.state = AppState.OFF
+            elif selection == MenuSelection.TRAIN:
+                model = self.renderer.menu.chosen_ai
+                self.game = Game(self.game.screen_height // self.game.scale_ratio, self.game.screen_width // self.game.scale_ratio, self.game.scale_ratio, self.game.frame_time, model)
+                self.renderer.set_vars(self.game.bird, self.game.pipes)
+                self.state = AppState.TRAINING
+            elif selection == MenuSelection.VIEW:
+                model = self.renderer.menu.chosen_ai
+                self.game = Game(self.game.screen_height // self.game.scale_ratio, self.game.screen_width // self.game.scale_ratio, self.game.scale_ratio, self.game.frame_time, model)
+                self.renderer.set_vars(self.game.bird, self.game.pipes)
+                self.state = AppState.AI_MENU
             else:
                 self.state = AppState.MENU
         elif self.state == AppState.PLAYING:
