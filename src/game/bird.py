@@ -1,7 +1,7 @@
 from render.sprite_helper import get_bird_sprite, rotate_sprite
 import pygame
 
-BASE_FLAP_ACCELERATION = -10.0 / 6.0
+BASE_FLAP_ACCELERATION = -20.0 / 6.0
 BASE_SPEED_LIMIT = 15.0 / 6.0
 BASE_GRAVITY = 1.0 / 6.0
 class Bird:

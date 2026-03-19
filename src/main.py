@@ -17,7 +17,6 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH * SCALE_RATIO, SCREEN_HEIGHT * SCALE_RATIO))
     pygame.display.set_caption("Genetic Bird")
     clock = pygame.time.Clock()
-    running = True
 
     app = App(screen, clock, SCREEN_HEIGHT, SCREEN_WIDTH, SCALE_RATIO, FRAME_TIME)
     app.run()

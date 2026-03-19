@@ -1,11 +1,13 @@
-class GeneticPlayer:
+from game.controller import Controller
+
+class NaiveController(Controller):
     def __init__(self, scale_ratio: int):
         self.scale_ratio = scale_ratio
         self.margin = 15 * scale_ratio
         self.flap_cooldown = 0.2  # seconds
         self.time_since_last_flap = 0.0
 
-    def decide_flap(self, game_state):
+    def decide_flap(self, game_state: dict, input_state: dict | None):
         bird_y = game_state['bird_y']
         bird_x = game_state['bird_x']
         bird_velocity = game_state['bird_velocity']

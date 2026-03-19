@@ -1,4 +1,6 @@
-class NaivePlayer:
+from game.controller import Controller
+
+class GeneticController(Controller):
     def __init__(self, scale_ratio: int):
         self.scale_ratio = scale_ratio
         self.margin = 15 * scale_ratio

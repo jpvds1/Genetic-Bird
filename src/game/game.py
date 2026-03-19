@@ -4,12 +4,6 @@ from game.bird import Bird
 from game.pipe import Pipe, RewardState
 
 class Game:
-    bird: Bird
-    pipes: list[Pipe]
-    screen_width: int
-    screen_height: int
-    frame_time: float
-    last_frame: float = 0.0
 
     def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float, model=None):
         self.screen_width = unscaled_width * scale_ratio
@@ -34,11 +28,11 @@ class Game:
             self.alive = False
             return False
         
+        updated_pipes = []
         for pipe in self.pipes:
             pipe.update(dt)
 
             if pipe.offscreen:
-                self.pipes.remove(pipe)
                 continue
 
             if pipe.state == RewardState.AVAILABLE:
@@ -48,7 +42,10 @@ class Game:
             if pipe.check_collision(self.bird.hitbox()):
                 self.alive = False
                 return False
+
+            updated_pipes.append(pipe)
             
+        self.pipes = updated_pipes
         self.generate_pipe()
         return True
     
@@ -67,14 +64,24 @@ class Game:
             self.pipes.append(new_pipe)
 
     def get_game_state(self):
-        # return relevant game state information for AI decision making
         next_pipe = None
         for pipe in self.pipes:
             if pipe.position_x + pipe.top_sprite.get_width() >= self.bird.position_x:
                 next_pipe = pipe
                 break
-        
-        state = {
+
+        if next_pipe is None:
+            return {
+                'bird_y': self.bird.position_y,
+                'bird_velocity': self.bird.acceleration,
+                'bird_x': self.bird.position_x,
+                'pipe_x': None,
+                'pipe_gap_y': None,
+                'pipe_gap_height': None,
+                'pipe_speed': None
+            }
+
+        return {
             'bird_y': self.bird.position_y,
             'bird_velocity': self.bird.acceleration,
             'bird_x': self.bird.position_x,
@@ -83,4 +90,3 @@ class Game:
             'pipe_gap_height': next_pipe.gap_height,
             'pipe_speed': next_pipe.speed
         }
-        return state
