@@ -109,6 +109,23 @@ class Orchestrator:
         print(f"Started training {model_name}")
         print(f"Time limit: {self.time_limit}")
 
+    def stop_training_early(self):
+        if self.state == OrchestratorState.TRAINING:
+            self.state = OrchestratorState.FINISHED
+
+    def get_training_status(self) -> dict:
+        elapsed = time.time() - self.start_time
+
+        return {
+            "model": self.current_controller_name,
+            "iteration": self.iteration,
+            "best_score": self.best_score,
+            "elapsed_time": elapsed,
+            "limit_type": self.train_limit_type.name,
+            "iteration_limit": self.iteration_limit,
+            "time_limit": self.time_limit
+        }
+
     def stop(self):
         self.state = OrchestratorState.IDLE
         self.game = None

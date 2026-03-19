@@ -8,6 +8,7 @@ class AppState(Enum):
     MENU = auto()
     RUNNING = auto()
     TRAINING = auto()
+    TRAINING_RESULTS = auto()
     GAME_OVER = auto()
     OFF = auto()
 
@@ -17,6 +18,7 @@ class App:
         self.clock = clock
         self.frame_time = frame_time
         self.state = AppState.MENU
+        self.training_summary = None
 
         self.orchestrator = Orchestrator(
             unscaled_height, 
@@ -82,6 +84,7 @@ class App:
             else:
                 self.orchestrator.start_training_iterations(model_name, menu.train_it)
 
+            self.training_summary = None
             self.state = AppState.TRAINING
             return
         
@@ -99,14 +102,34 @@ class App:
         active = self.orchestrator.update(dt, input_state)
 
         if not active:
-            summary = self.orchestrator.get_training_summary()
-            print("Training finished:", summary)
-            self.state = AppState.MENU
+            self.training_summary = self.orchestrator.get_training_summary()
+            print("Training finished:", self.training_summary)
+            self.state = AppState.TRAINING_RESULTS
 
     def _render_running(self):
         visible_game = self.orchestrator.get_visible_game()
         if visible_game is not None:
             self.renderer.render(visible_game.score)
+
+    def _render_training(self):
+        status = self.orchestrator.get_training_status()
+        selection = self.renderer.render_training(status)
+
+        if selection == MenuSelection.QUIT:
+            self.orchestrator.stop_training_early()
+            self.training_summary = self.orchestrator.get_training_summary()
+            self.state = AppState.TRAINING_RESULTS
+
+    def _render_training_results(self):
+        if self.training_summary is None:
+            self.state = AppState.MENU
+            return
+
+        selection = self.renderer.render_training_results(self.training_summary)
+
+        if selection == MenuSelection.MENU:
+            self.orchestrator.stop()
+            self.state = AppState.MENU
 
     def _render_game_over(self):
         visible_game = self.orchestrator.get_visible_game()
@@ -139,6 +162,10 @@ class App:
 
             elif self.state == AppState.TRAINING:
                 self._handle_training(dt, input_state)
+                self._render_training()
+
+            elif self.state == AppState.TRAINING_RESULTS:
+                self._render_training_results()
 
             elif self.state == AppState.GAME_OVER:
                 self._render_game_over()
