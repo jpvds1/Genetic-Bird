@@ -75,9 +75,13 @@ class App:
 
         if selection == MenuSelection.TRAIN:
             model_name = self.renderer.menu.chosen_ai or "Naive"
+            menu = self.renderer.menu
 
-            # TO DO
-            self.orchestrator.start_training_iterations(model_name, 5)
+            if menu.train_mode.name == "TIME":
+                self.orchestrator.start_training_time(model_name, menu.train_time)
+            else:
+                self.orchestrator.start_training_iterations(model_name, menu.train_it)
+
             self.state = AppState.TRAINING
             return
         

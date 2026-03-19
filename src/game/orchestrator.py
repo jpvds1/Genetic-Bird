@@ -88,6 +88,9 @@ class Orchestrator:
         self.results.clear()
         self.best_score = 0
 
+        print(f"Started training {model_name}")
+        print(f"Iterations limit {self.iteration_limit}")
+
     def start_training_time(self, model_name: str, time_limit: float):
         self.game = self._create_game()
         self.controller = self.build_controller(model_name)
@@ -102,6 +105,9 @@ class Orchestrator:
         self.start_time = time.time()
         self.results.clear()
         self.best_score = 0
+
+        print(f"Started training {model_name}")
+        print(f"Time limit: {self.time_limit}")
 
     def stop(self):
         self.state = OrchestratorState.IDLE
