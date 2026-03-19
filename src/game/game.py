@@ -1,10 +1,7 @@
 import random
-import time
 
 from game.bird import Bird
 from game.pipe import Pipe, RewardState
-from algorithms.naive import NaivePlayer
-from algorithms.genetic import GeneticPlayer
 
 class Game:
     bird: Bird
@@ -19,56 +16,53 @@ class Game:
         self.screen_height = unscaled_height * scale_ratio
         self.scale_ratio = scale_ratio
         self.frame_time = frame_time
+
         self.bird = Bird(scale_ratio)
         self.pipes = []
         self.score = 0
-        
-        # AI variables
-        self.use_ai = model is not None
-        if self.use_ai:
-            self.get_model(model)
+        self.alive = True
 
-    def get_model(self):
-        if self.model == "Naive":
-            self.model = NaivePlayer(self.scale_ratio)
-        elif self.model == "Genetic":
-            self.model = GeneticPlayer(self.scale_ratio)
+    def update(self, dt: float, flap: bool = False) -> bool:
+        if not self.alive:
+            return False
 
-    def update(self, dt: float) -> bool:
+        if flap:
+            self.bird.flap()
 
         self.bird.update(dt)
         if self.bird.check_collision(self.screen_height):
+            self.alive = False
             return False
         
         for pipe in self.pipes:
             pipe.update(dt)
+
             if pipe.offscreen:
                 self.pipes.remove(pipe)
+                continue
+
             if pipe.state == RewardState.AVAILABLE:
                 self.score += 1
                 pipe.state = RewardState.COLLECTED
+
             if pipe.check_collision(self.bird.hitbox()):
+                self.alive = False
                 return False
             
         self.generate_pipe()
-
-        if self.use_ai:
-            game_state = self.get_game_state()
-            if self.model.decide_flap(game_state):
-                self.bird.flap()
-
         return True
     
     # check the position of the last pipe and generate a new one if needed
     def generate_pipe(self):
         if len(self.pipes) == 0:
-            gap_y = random.randint(self.screen_height*0.1, self.screen_height*0.4)
+            gap_y = random.randint(int(self.screen_height*0.1), int(self.screen_height*0.4))
             new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio)
             self.pipes.append(new_pipe)
             return
+
         last_position = self.pipes[-1].position_x
         if last_position < self.screen_width * 0.5:
-            gap_y = random.randint(self.screen_height*0.1, self.screen_height*0.4)
+            gap_y = random.randint(int(self.screen_height*0.1), int(self.screen_height*0.4))
             new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio)
             self.pipes.append(new_pipe)
 
