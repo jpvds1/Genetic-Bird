@@ -51,7 +51,7 @@ class Orchestrator:
 
     def build_controller(self, controller_name):
         if controller_name == "Naive":
-            return NaiveController(self.scale_ratio)
+            return NaiveController(self.scale_ratio, self.unscaled_height)
         elif controller_name == "Genetic Algorithm":
             return GeneticController(self.scale_ratio)
         elif controller_name == "Human":
