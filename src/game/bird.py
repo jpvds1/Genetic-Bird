@@ -9,15 +9,21 @@ class Bird:
     position_y: int
     acceleration: float
     
-    def __init__(self, scale_ratio: int):
+    def __init__(self, scale_ratio: int, headless=False):
         self.position_x = 8 * scale_ratio
         self.position_y = 50 * scale_ratio
         self.flap_velocity = BASE_FLAP_ACCELERATION * scale_ratio
         self.speed_limit = BASE_SPEED_LIMIT * scale_ratio
         self.acceleration = 0.0
         self.gravity = BASE_GRAVITY * scale_ratio
-        self.sprite = get_bird_sprite(scale_ratio)
         self.scale_ratio = scale_ratio
+        self.width = 17 * scale_ratio
+        self.height = 12 * scale_ratio
+
+        if not headless:
+            self.sprite = get_bird_sprite(scale_ratio)
+        else:
+            self.sprite = None
 
     def flap(self):
         self.acceleration = self.flap_velocity
@@ -34,13 +40,13 @@ class Bird:
             self.acceleration = self.speed_limit
 
     def render(self, screen):
-        rotated_sprite, rect = rotate_sprite(self.sprite, -self.acceleration * 2, (self.position_x + self.sprite.get_width() // 2, self.position_y + self.sprite.get_height() // 2))
+        rotated_sprite, rect = rotate_sprite(self.sprite, -self.acceleration * 2, (self.position_x + self.width // 2, self.position_y + self.sprite.height // 2))
         screen.blit(rotated_sprite, rect.topleft)
 
     def hitbox(self) -> pygame.Rect:
-        return pygame.Rect(self.position_x, self.position_y - 1 * self.scale_ratio, self.sprite.get_width(), self.sprite.get_height() + 2 * self.scale_ratio)
+        return pygame.Rect(self.position_x, self.position_y - 1 * self.scale_ratio, self.width, self.height + 2 * self.scale_ratio)
     
     def check_collision(self, screen_height: int) -> bool:
-        if self.position_y + self.sprite.get_height() >= screen_height - 30 * self.scale_ratio:
+        if self.position_y + self.height >= screen_height - 30 * self.scale_ratio:
             return True
         return False

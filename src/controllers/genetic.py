@@ -3,6 +3,7 @@ import numpy as np
 import random
 from pathlib import Path
 from game.controller import Controller
+from game.game import Game
 
 _SCHEMA_VERSION = 1
 
@@ -90,12 +91,13 @@ class GeneticController(Controller):
     def population_size(self) -> int:
         return self.pop_size
 
-    def _normalise(self, game_state: dict) -> np.ndarray:
-        sh = self.SCREEN_H * self.scale_ratio
-        sw = self.SCREEN_W * self.scale_ratio
+    @staticmethod
+    def _normalise(game_state: dict, scale_ratio: int) -> np.ndarray:
+        sh = GeneticController.SCREEN_H * scale_ratio
+        sw = GeneticController.SCREEN_W * scale_ratio
 
         bird_y   = game_state["bird_y"] / sh
-        bird_vel = np.clip(game_state["bird_velocity"] / (600 * self.scale_ratio), -1.0, 1.0)
+        bird_vel = np.clip(game_state["bird_velocity"] / (600 * scale_ratio), -1.0, 1.0)
 
         inputs = [bird_y, bird_vel]
 
@@ -114,7 +116,7 @@ class GeneticController(Controller):
         return np.array(inputs, dtype=np.float32)
 
     def decide_flap(self, game_state: dict, input_state: dict | None = None, agent_index: int = 0) -> bool:
-        inputs = self._normalise(game_state)
+        inputs = self._normalise(game_state, self.scale_ratio)
         return self.population[agent_index].forward(inputs) > 0.5
 
     def on_generation_end(self, scores: list[int]):
@@ -209,3 +211,43 @@ class GeneticController(Controller):
         self.population = [NeuralNetwork.from_dict(d) for d in payload["population"]]
 
         print(f"Checkpoint loaded (gen {self.generation})")
+
+    # ----------------------------------------------
+    # Parallel training
+    # ----------------------------------------------
+
+    def get_parallel_tasks(self) -> list:
+        tasks = []
+        for nn in self.population:
+            tasks.append({
+                "weights": nn.get_flat(),
+                "layer_sizes": self.layer_sizes
+            })
+        return tasks
+
+    @staticmethod
+    def evaluate_task(task_data: dict, game_params: dict, seed: int) -> int:
+        nn = NeuralNetwork(task_data["layer_sizes"])
+        nn.set_flat(task_data["weights"])
+
+        game = Game(
+            game_params["unscaled_height"],
+            game_params["unscaled_width"],
+            game_params["scale_ratio"],
+            game_params["frame_time"],
+            seed,
+            True
+        )
+
+        sh = GeneticController.SCREEN_H * game_params["scale_ratio"]
+        sw = GeneticController.SCREEN_W * game_params["scale_ratio"]
+
+        while game.alive:
+            state = game.get_game_state()
+
+            inputs = GeneticController._normalise(state, game_params["scale_ratio"])
+            flap = nn.forward(inputs) > 0.5
+
+            game.update(game_params["frame_time"], flap)
+
+        return game.score

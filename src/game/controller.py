@@ -22,17 +22,26 @@ class Controller(ABC):
         pass
 
     def save(self, path: str | Path) -> None:
-        """Persists the controller's state to *path*"""
+        """Persists the controller's state to *path*."""
         pass
 
     def load(self, path: str | Path) -> None:
-        """Restore the controller's state from *path*"""
+        """Restore the controller's state from *path*."""
         pass
 
     @property
     def supports_checkpointing(self) -> bool:
-        """Return True if this controller has overridden save/load"""
+        """Return True if this controller has overridden save/load."""
         return (
             type(self).save is not Controller.save
             or type(self).load is not Controller.load
         )
+
+    def get_parallel_tasks(self) -> list:
+        """Retuns a list of opaque task data to be distributed to workers."""
+        pass
+
+    @staticmethod
+    def evaluate_task(task_data, game_params: dict, seed: int) -> int:
+        """"Runs a single simulation. Returns score."""
+        return NotImplementedError

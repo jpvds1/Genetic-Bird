@@ -5,14 +5,15 @@ from game.pipe import Pipe, RewardState
 
 class Game:
 
-    def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float, seed = None):
+    def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float, seed = None, headless: bool = False):
         self.screen_width = unscaled_width * scale_ratio
         self.screen_height = unscaled_height * scale_ratio
         self.scale_ratio = scale_ratio
         self.frame_time = frame_time
         self.rng = random.Random(seed)
+        self.headless = headless
 
-        self.bird = Bird(scale_ratio)
+        self.bird = Bird(scale_ratio, self.headless)
         self.pipes = []
         self.score = 0
         self.alive = True
@@ -54,20 +55,20 @@ class Game:
     def generate_pipe(self):
         if len(self.pipes) == 0:
             gap_y = self.rng.randint(int(self.screen_height*0.1), int(self.screen_height*0.4))
-            new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio)
+            new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio, self.headless)
             self.pipes.append(new_pipe)
             return
 
         last_position = self.pipes[-1].position_x
         if last_position < self.screen_width * 0.5:
             gap_y = self.rng.randint(int(self.screen_height*0.1), int(self.screen_height*0.4))
-            new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio)
+            new_pipe = Pipe(gap_y, self.screen_width, self.screen_height, self.scale_ratio, self.headless)
             self.pipes.append(new_pipe)
 
     def get_game_state(self):
         upcoming_pipes = [
             p for p in self.pipes
-            if p.position_x + p.top_sprite.get_width() >= self.bird.position_x
+            if p.position_x + p.width >= self.bird.position_x
         ]
 
         pipe_data = []

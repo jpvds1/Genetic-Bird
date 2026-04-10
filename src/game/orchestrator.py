@@ -1,6 +1,8 @@
 from enum import Enum, auto
 from pathlib import Path
 import time
+import multiprocessing
+import random
 
 from game.game import Game
 from controllers.naive import NaiveController
@@ -19,6 +21,8 @@ class TrainLimitType(Enum):
     ITERATIONS = auto()
 
 _CHECKPOINT_DIR = Path("./checkpoints")
+USE_MULTIPROCESSING = True
+NUM_PROCESSORS = multiprocessing.cpu_count() if USE_MULTIPROCESSING else 1
 
 class Orchestrator:
     def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float):
@@ -112,7 +116,7 @@ class Orchestrator:
         return True 
 
     def checkpoint_exists(self, controller_name: str) -> bool:
-        return self._checkpoint_path(controller).exists()
+        return self._checkpoint_path(controller_name).exists()
 
     # ----------------------------------------------
     # Start methods
@@ -158,7 +162,7 @@ class Orchestrator:
             self.games = []
             self.visible = False
 
-    def start_training_iterations(self, model_name: str, iteration_limit: int, resum: bool = True):
+    def start_training_iterations(self, model_name: str, iteration_limit: int, resume: bool = True):
         self._start_training_common(model_name)
         self.train_limit_type = TrainLimitType.ITERATIONS
         self.iteration_limit = max(1, iteration_limit)
@@ -272,7 +276,7 @@ class Orchestrator:
             return False
 
         if self.parallel:
-            return self._update_parallel(dt)
+            return self._update_parallel()
         else:
             return self._update_single(dt, input_state)
 
@@ -309,32 +313,32 @@ class Orchestrator:
 
         self.state = OrchestratorState.FINISHED
         return False
+        
+    def _update_parallel(self) -> bool:
+        tasks = self.controller.get_parallel_tasks()
 
-    def _update_parallel(self, dt: float) -> bool:
-        any_alive = False
+        game_params = {
+            "unscaled_height": self.unscaled_height,
+            "unscaled_width": self.unscaled_width,
+            "scale_ratio": self.scale_ratio,
+            "frame_time": self.frame_time
+        }
 
-        for i, (game, alive) in enumerate(zip(self.games, self.alive_mask)):
-            if not alive:
-                continue
+        eval_func = self.controller.__class__.evaluate_task
 
-            game_state = game.get_game_state()
-            flap = self.controller.decide_flap(game_state, None, agent_index=i)
-            still_alive = game.update(dt, flap)
+        pool_args = [(task, game_params, random.randint(1, 1000000)) for task in tasks]
 
-            if still_alive:
-                any_alive = True
-            else:
-                self.alive_mask[i] = False
-                self.generation_scores[i] = game.score
+        if NUM_PROCESSORS > 1:
+            with multiprocessing.Pool(processes=NUM_PROCESSORS) as pool:
+                self.generation_scores = pool.starmap(eval_func, pool_args)
+        else:
+            self.generation_scores = [eval_func(*args) for args in pool_args]
 
-        if any_alive:
-            return True
-
-        # All agents dead -> end of generation
         gen_best = max(self.generation_scores)
         self.results.extend(self.generation_scores)
         self.best_score = max(self.best_score, gen_best)
         self.iteration += 1
+
         self.controller.on_generation_end(self.generation_scores)
 
         if self._training_should_stop():
@@ -342,10 +346,4 @@ class Orchestrator:
             self.state = OrchestratorState.FINISHED
             return False
 
-        # Reset for next generation
-        next_gen_seed = random.randint(0, 1000000)
-        n = self.controller.population_size
-        self.games = [self._create_game(seed=next_gen_seed) for _ in range(n)]
-        self.alive_mask = [True] * n
-        self.generation_scores = [0] * n
         return True
