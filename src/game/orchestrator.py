@@ -56,12 +56,13 @@ class Orchestrator:
     # Internal helpers
     # ----------------------------------------------
 
-    def _create_game(self):
+    def _create_game(self, seed=None):
         return Game(
             self.unscaled_height,
             self.unscaled_width,
             self.scale_ratio,
-            self.frame_time
+            self.frame_time,
+            seed
         )
 
     def build_controller(self, controller_name):
@@ -342,8 +343,9 @@ class Orchestrator:
             return False
 
         # Reset for next generation
+        next_gen_seed = random.randint(0, 1000000)
         n = self.controller.population_size
-        self.games = [self._create_game() for _ in range(n)]
+        self.games = [self._create_game(seed=next_gen_seed) for _ in range(n)]
         self.alive_mask = [True] * n
         self.generation_scores = [0] * n
         return True
