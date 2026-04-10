@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 class Controller(ABC):
 
@@ -19,3 +20,19 @@ class Controller(ABC):
     def on_generation_end(self, scores: list[int]):
         """Called when all parallel agents in a generation have died."""
         pass
+
+    def save(self, path: str | Path) -> None:
+        """Persists the controller's state to *path*"""
+        pass
+
+    def load(self, path: str | Path) -> None:
+        """Restore the controller's state from *path*"""
+        pass
+
+    @property
+    def supports_checkpointing(self) -> bool:
+        """Return True if this controller has overridden save/load"""
+        return (
+            type(self).save is not Controller.save
+            or type(self).load is not Controller.load
+        )

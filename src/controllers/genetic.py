@@ -1,7 +1,10 @@
+import json
 import numpy as np
 import random
+from pathlib import Path
 from game.controller import Controller
 
+_SCHEMA_VERSION = 1
 
 class NeuralNetwork:
     def __init__(self, layer_sizes: list[int]):
@@ -42,6 +45,20 @@ class NeuralNetwork:
         child = NeuralNetwork(self.layer_sizes)
         child.set_flat(self.get_flat().copy())
         return child
+
+    def to_dict(self) -> dict:
+        return {
+            "layer_sizes": self.layer_sizes,
+            "weights": [w.tolist() for w in self.weights],
+            "biases": [b.tolist() for b in self.biases]
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "NeuralNetwork":
+        nn = cls(data["layer_sizes"])
+        nn.weights = [np.array(w, dtype=np.float64) for w in data["weights"]]
+        nn.biases = [np.array(b, dtype=np.float64) for b in data["biases"]]
+        return nn
 
 
 class GeneticController(Controller):
@@ -132,3 +149,57 @@ class GeneticController(Controller):
         mask = np.random.rand(len(flat)) < self.mutation_rate
         flat[mask] += np.random.randn(int(mask.sum())) * self.mutation_strength
         nn.set_flat(flat)
+
+    # ----------------------------------------------
+    # Persistance
+    # ----------------------------------------------
+
+    def save(self, path: str | Path) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        payload = {
+            "controller_type": "GeneticController",
+            "version": _SCHEMA_VERSION,
+            "generation": self.generation,
+            "hyperparameters": {
+                "pop_size":          self.pop_size,
+                "elite_count":       self.elite_count,
+                "mutation_rate":     self.mutation_rate,
+                "mutation_strength": self.mutation_strength,
+                "tournament_size":   self.tournament_size,
+                "layer_sizes":       self.layer_sizes
+            },
+            "population": [nn.to_dict() for nn in self.population]
+        }
+
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        tmp.replace(path)
+
+        print(f"Checkpoint saved -> {path} (gen {self.generation})")
+
+    def load(self, path: str | Path) -> None:
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"No checkpoint found at '{path}'")
+
+        payload = json.loads(path.read_text(encoding="utf-8"))
+
+        if payload.get("controller_type") != "GeneticController":
+            raise ValueError("Checkpoint controller missmatch")
+        if payload.get("version", 0) != _SCHEMA_VERSION:
+            raise ValueError("Checkpoint schema version missmatch")
+
+        hp = payload.get("hyperparameters", {})
+        self.pop_size = hp.get("pop_size", self.pop_size)
+        self.elite_count = hp.get("elite_count", self.elite_count)
+        self.mutation_rate = hp.get("mutation_rate", self.mutation_rate)
+        self.mutation_strength = hp.get("mutation_strength", self.mutation_strength)
+        self.tournament_size = hp.get("tournament_size", self.tournament_size)
+        self.layer_sizes = hp.get("layer_sizes", self.layer_sizes)
+
+        self.generation = payload.get("generation", 0)
+        self.population = [NeuralNetwork.from_dict(d) for d in payload["population"]]
+
+        print(f"Checkpoint loaded (gen {self.generation})")

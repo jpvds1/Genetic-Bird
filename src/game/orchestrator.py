@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from pathlib import Path
 import time
 
 from game.game import Game
@@ -16,6 +17,8 @@ class OrchestratorState(Enum):
 class TrainLimitType(Enum):
     TIME       = auto()
     ITERATIONS = auto()
+
+_CHECKPOINT_DIR = Path("./checkpoints")
 
 class Orchestrator:
     def __init__(self, unscaled_height: int, unscaled_width: int, scale_ratio: int, frame_time: float):
@@ -49,6 +52,10 @@ class Orchestrator:
         self.current_controller_name = None
         self.train_limit_type = None
 
+    # ----------------------------------------------
+    # Internal helpers
+    # ----------------------------------------------
+
     def _create_game(self):
         return Game(
             self.unscaled_height,
@@ -66,6 +73,45 @@ class Orchestrator:
             return HumanController()
         else:
             return None
+
+    def _checkpoint_path(self, controller_name: str) -> Path:
+        safe = controller_name.lower().replace(" ", "_")
+        return _CHECKPOINT_DIR / f"{safe}.json"
+
+    # ----------------------------------------------
+    # Persisence
+    # ----------------------------------------------
+
+    def save_checkpoint(self, controller_name: str | None = None) -> bool:
+        if self.controller is None:
+            return False
+
+        if not self.controller.supports_checkpointing:
+            return False
+
+        name = controller_name or self.current_controller_name or "controller"
+        path = self._checkpoint_path(name)
+        self.controller.save(path)
+        return True
+
+    def load_checkpoint(self, controller_name: str | None = None) -> bool:
+        if self.controller is None:
+            return False
+
+        if not self.controller.supports_checkpointing:
+            return False
+
+        name = controller_name or self.current_controller_name or "controller"
+        path = self._checkpoint_path(name)
+
+        if not path.exists():
+            return False
+
+        self.controller.load(path)
+        return True 
+
+    def checkpoint_exists(self, controller_name: str) -> bool:
+        return self._checkpoint_path(controller).exists()
 
     # ----------------------------------------------
     # Start methods
@@ -86,6 +132,7 @@ class Orchestrator:
         self.visible = True
         self.parallel = False
         self.current_controller_name = model_name
+        self.load_checkpoint(model_name)
 
     def _start_training_common(self, model_name: str):
         self.controller = self.build_controller(model_name)
@@ -110,21 +157,27 @@ class Orchestrator:
             self.games = []
             self.visible = False
 
-    def start_training_iterations(self, model_name: str, iteration_limit: int):
+    def start_training_iterations(self, model_name: str, iteration_limit: int, resum: bool = True):
         self._start_training_common(model_name)
         self.train_limit_type = TrainLimitType.ITERATIONS
         self.iteration_limit = max(1, iteration_limit)
         self.time_limit = 0.0
 
+        if resume:
+            self.load_checkpoint(model_name)
+
         print(f"Started training {model_name}")
         print(f"Iterations limit {self.iteration_limit}")
 
-    def start_training_time(self, model_name: str, time_limit: float):
+    def start_training_time(self, model_name: str, time_limit: float, resume: bool = True):
         self._start_training_common(model_name)
         self.current_controller_name = model_name
         self.train_limit_type = TrainLimitType.TIME
         self.time_limit = max(0.01, time_limit)
         self.iteration_limit = 0
+
+        if resume:
+            self.load_checkpoint(model_name)
 
         print(f"Started training {model_name}")
         print(f"Time limit: {self.time_limit}")
@@ -135,6 +188,7 @@ class Orchestrator:
 
     def stop_training_early(self):
         if self.state == OrchestratorState.TRAINING:
+            self.save_checkpoint()
             self.state = OrchestratorState.FINISHED
 
     def stop(self):
@@ -245,6 +299,7 @@ class Orchestrator:
             self.controller.on_episode_end(score)
 
             if self._training_should_stop():
+                self.save_checkpoint()
                 self.state = OrchestratorState.FINISHED
                 return False
 
@@ -282,6 +337,7 @@ class Orchestrator:
         self.controller.on_generation_end(self.generation_scores)
 
         if self._training_should_stop():
+            self.save_checkpoint()
             self.state = OrchestratorState.FINISHED
             return False
 
