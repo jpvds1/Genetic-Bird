@@ -80,7 +80,7 @@ class GeneticController(Controller):
         self.mutation_rate = mutation_rate
         self.mutation_strength = mutation_strength
         self.tournament_size = tournament_size
-        self.layer_sizes = [5, 10, 6, 1]
+        self.layer_sizes = [8, 12, 8, 1]
         self.generation = 0
         self.population: list[NeuralNetwork] = [
             NeuralNetwork(self.layer_sizes) for _ in range(pop_size)
@@ -97,15 +97,21 @@ class GeneticController(Controller):
         bird_y   = game_state["bird_y"] / sh
         bird_vel = np.clip(game_state["bird_velocity"] / (600 * self.scale_ratio), -1.0, 1.0)
 
-        if game_state["pipe_x"] is None:
-            dx, dy, gap_h = 1.0, 0.0, 0.5
-        else:
-            dx = (game_state["pipe_x"] - game_state["bird_x"]) / sw
-            target_y = game_state["pipe_gap_y"] + game_state["pipe_gap_height"] / 2
-            dy = (game_state["bird_y"] - target_y) / sh
-            gap_h = game_state["pipe_gap_height"] / sh
+        inputs = [bird_y, bird_vel]
 
-        return np.array([bird_y, bird_vel, dx, dy, gap_h], dtype=np.float32)
+        pipes = game_state.get("pipes", [])
+        for i in range(2):
+            if i < len(pipes):
+                p = pipes[i]
+                dx = (p["pipe_x"] - game_state["bird_x"]) / sw
+                target_y = p["pipe_gap_y"] + p["pipe_gap_height"] / 2
+                dy = (game_state["bird_y"] - target_y) / sh
+                gap_h = p["pipe_gap_height"] / sh
+                inputs.extend([dx, dy, gap_h])
+            else:
+                inputs.extend([1.5, 0.0, 0.5])
+
+        return np.array(inputs, dtype=np.float32)
 
     def decide_flap(self, game_state: dict, input_state: dict | None = None, agent_index: int = 0) -> bool:
         inputs = self._normalise(game_state)

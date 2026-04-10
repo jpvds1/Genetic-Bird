@@ -65,29 +65,23 @@ class Game:
             self.pipes.append(new_pipe)
 
     def get_game_state(self):
-        next_pipe = None
-        for pipe in self.pipes:
-            if pipe.position_x + pipe.top_sprite.get_width() >= self.bird.position_x:
-                next_pipe = pipe
-                break
+        upcoming_pipes = [
+            p for p in self.pipes
+            if p.position_x + p.top_sprite.get_width() >= self.bird.position_x
+        ]
 
-        if next_pipe is None:
-            return {
-                'bird_y': self.bird.position_y,
-                'bird_velocity': self.bird.acceleration,
-                'bird_x': self.bird.position_x,
-                'pipe_x': None,
-                'pipe_gap_y': None,
-                'pipe_gap_height': None,
-                'pipe_speed': None
-            }
+        pipe_data = []
+        for p in upcoming_pipes:
+            pipe_data.append({
+                'pipe_x': p.position_x,
+                'pipe_gap_y': p.gap_y,
+                'pipe_gap_height': p.gap_height,
+                'pipe_speed': p.speed
+            })
 
         return {
             'bird_y': self.bird.position_y,
             'bird_velocity': self.bird.acceleration,
             'bird_x': self.bird.position_x,
-            'pipe_x': next_pipe.position_x,
-            'pipe_gap_y': next_pipe.gap_y,
-            'pipe_gap_height': next_pipe.gap_height,
-            'pipe_speed': next_pipe.speed
+            'pipes': pipe_data
         }
