@@ -39,7 +39,7 @@ class Pipe:
             self.offscreen = True
         
     def render(self, screen):
-        screen.blit(self.top_sprite, (self.position_x, self.gap_y - self.height))
+        screen.blit(self.top_sprite, (self.position_x, self.gap_y - self.top_sprite.get_height()))
         screen.blit(self.bottom_sprite, (self.position_x, self.gap_height + self.gap_y))
     
     def check_collision(self, bird_rect) -> bool:

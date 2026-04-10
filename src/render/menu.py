@@ -37,7 +37,7 @@ class Menu:
         self.chosen_ai = None
 
         self.train_mode = TrainMode.TIME
-        self.train_time = 60 # seconds
+        self.train_time = 3600 # seconds
         self.train_it = 1000 # iterations
         self.train_time_step = 5
         self.train_time_min = 5
